@@ -1,17 +1,10 @@
-import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 
-export default function VendorScan() {
-  const router = useRouter();
-  const [amount, setAmount] = useState("");
+export default function SetGoal() {
+  const [goal, setGoal] = useState("");
 
-  const isValid = Number(amount) > 0;
-
-  // mock scanned student
-  const mockStudent = {
-    email: "student@vitstudent.ac.in",
-  };
+  const isValid = Number(goal) > 0;
 
   return (
     <View
@@ -22,25 +15,38 @@ export default function VendorScan() {
         padding: 24,
       }}
     >
-      <Text style={{ fontSize: 64, textAlign: "center", marginBottom: 12 }}>
-        📷
+      {/* Emoji / Motivation */}
+      <Text style={{ fontSize: 64, textAlign: "center", marginBottom: 16 }}>
+        🎯
       </Text>
 
       <Text
         style={{
           color: "#0BE602",
-          fontSize: 22,
+          fontSize: 24,
           fontWeight: "700",
           textAlign: "center",
-          marginBottom: 24,
+          marginBottom: 6,
         }}
       >
-        Enter Amount
+        Set Your Monthly Spending Goal
       </Text>
 
+      <Text
+        style={{
+          color: "#ffffff",
+          opacity: 0.6,
+          textAlign: "center",
+          marginBottom: 32,
+        }}
+      >
+        Control your campus spending
+      </Text>
+
+      {/* Input */}
       <TextInput
-        value={amount}
-        onChangeText={setAmount}
+        value={goal}
+        onChangeText={setGoal}
         keyboardType="numeric"
         placeholder="Enter amount (₹)"
         placeholderTextColor="#555"
@@ -56,35 +62,40 @@ export default function VendorScan() {
         }}
       />
 
+      {/* Button */}
       <TouchableOpacity
         disabled={!isValid}
-        onPress={() =>
-          router.push({
-            pathname: "/vendor/confirm",
-            params: {
-              email: mockStudent.email,
-              amount,
-              ts: Date.now(),
-            },
-          })
-        }
         style={{
           backgroundColor: isValid ? "#0BE602" : "#0BE60240",
           paddingVertical: 16,
-          borderRadius: 16,
+          borderRadius: 20,
+          transform: [{ scale: isValid ? 1 : 0.97 }],
         }}
       >
         <Text
           style={{
             textAlign: "center",
             fontWeight: "700",
-            color: "#000",
             fontSize: 16,
+            color: "#000",
           }}
         >
-          Continue
+          Save Goal
         </Text>
       </TouchableOpacity>
+
+      {/* Hint */}
+      <Text
+        style={{
+          color: "#ffffff",
+          opacity: 0.4,
+          textAlign: "center",
+          fontSize: 12,
+          marginTop: 16,
+        }}
+      >
+        You can change this anytime
+      </Text>
     </View>
   );
 }

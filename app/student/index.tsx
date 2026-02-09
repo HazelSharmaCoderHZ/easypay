@@ -11,6 +11,11 @@ export default function StudentHome() {
   const [timestamp, setTimestamp] = useState(Date.now());
   const [showQR, setShowQR] = useState(false);
 
+  // 🔢 Dummy goal data (UI only)
+  const MONTHLY_GOAL = 3000;
+  const SPENT_SO_FAR = 1750;
+  const progress = Math.min(SPENT_SO_FAR / MONTHLY_GOAL, 1);
+
   // Refresh QR every 30 seconds
   useEffect(() => {
     if (!showQR) return;
@@ -40,7 +45,56 @@ export default function StudentHome() {
         padding: 24,
       }}
     >
-      {/* Avatar / Emoji */}
+      {/* 💸 Monthly Goal Progress */}
+      <View style={{ marginBottom: 28 }}>
+        <Text
+          style={{
+            color: "#0BE602",
+            fontSize: 14,
+            fontWeight: "600",
+            marginBottom: 6,
+            textAlign: "center",
+          }}
+        >
+          Monthly Spending
+        </Text>
+
+        <View
+          style={{
+            height: 10,
+            width: "100%",
+            backgroundColor: "#1a1a1a",
+            borderRadius: 10,
+            overflow: "hidden",
+            marginHorizontal: 8
+          }}
+        >
+          <View
+            style={{
+              height: "100%",
+              overflow: "hidden",
+              borderRadius: 10,
+              width: `${progress * 100}%`,
+              backgroundColor: "#0BE602",
+              marginHorizontal: 8
+            }}
+          />
+        </View>
+
+        <Text
+          style={{
+            color: "#ffffff",
+            opacity: 0.7,
+            fontSize: 12,
+            textAlign: "center",
+            marginTop: 6,
+          }}
+        >
+          ₹{SPENT_SO_FAR} spent of ₹{MONTHLY_GOAL}
+        </Text>
+      </View>
+
+      {/* Avatar */}
       <Text
         style={{
           fontSize: 72,
@@ -114,14 +168,12 @@ export default function StudentHome() {
             borderColor: "#0BE602",
           }}
         >
-          
-            <QRCode
-              value={qrPayload}
-              size={220}
-              color="#0BE602"
-              backgroundColor="transparent"
-            />
-          
+          <QRCode
+            value={qrPayload}
+            size={220}
+            color="#0BE602"
+            backgroundColor="transparent"
+          />
 
           <Text
             style={{

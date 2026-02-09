@@ -1,10 +1,8 @@
-import { useTheme } from "@/constants/theme";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
 
 export default function VendorHome() {
-  const { colors } = useTheme();
   const router = useRouter();
   const user = auth.currentUser;
 
@@ -12,97 +10,61 @@ export default function VendorHome() {
     <View
       style={{
         flex: 1,
-        backgroundColor: colors.background,
-        padding: 24,
+        backgroundColor: "#000",
         justifyContent: "center",
+        padding: 24,
       }}
     >
+      {/* Emoji */}
+      <Text style={{ fontSize: 72, textAlign: "center", marginBottom: 12 }}>
+        🧑‍🍳
+      </Text>
+
       {/* Greeting */}
       <Text
         style={{
-          color: colors.text,
-          fontSize: 18,
-          marginBottom: 4,
+          color: "#0BE602",
+          fontSize: 22,
+          fontWeight: "700",
+          textAlign: "center",
+          marginBottom: 6,
         }}
       >
-        Welcome 👋
+        Hello 👋
       </Text>
 
       <Text
         style={{
-          color: colors.text,
-          fontSize: 24,
-          fontWeight: "600",
+          color: "#ffffff",
+          opacity: 0.7,
+          fontSize: 14,
+          textAlign: "center",
           marginBottom: 32,
         }}
       >
-        {user?.email || "Vendor"}
+        {user?.email}
       </Text>
 
-      {/* Main Action Card */}
-      <View
+      {/* Scan Button */}
+      <TouchableOpacity
+        onPress={() => router.push("/vendor/scan")}
         style={{
-          backgroundColor: colors.card,
-          padding: 24,
-          borderRadius: 24,
-          marginBottom: 24,
-          borderWidth: 2,
-          borderColor: colors.primary,
+          backgroundColor: "#0BE602",
+          paddingVertical: 16,
+          borderRadius: 16,
         }}
       >
         <Text
           style={{
-            color: colors.text,
-            fontSize: 18,
-            fontWeight: "600",
-            marginBottom: 8,
+            textAlign: "center",
+            fontWeight: "700",
+            color: "#000",
+            fontSize: 16,
           }}
         >
-          Ready to Accept Payments
+          Scan & Enter Amount
         </Text>
-
-        <Text
-          style={{
-            color: colors.text,
-            opacity: 0.6,
-            marginBottom: 20,
-          }}
-        >
-          Scan student UniPay QR to record a transaction.
-        </Text>
-
-        <TouchableOpacity
-          onPress={() => router.push("/vendor/scan")}
-          style={{
-            backgroundColor: colors.primary,
-            paddingVertical: 16,
-            borderRadius: 16,
-          }}
-        >
-          <Text
-            style={{
-              textAlign: "center",
-              fontWeight: "600",
-              fontSize: 16,
-              color: "#000",
-            }}
-          >
-            Scan Student QR
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Footer hint */}
-      <Text
-        style={{
-          color: colors.text,
-          opacity: 0.4,
-          fontSize: 12,
-          textAlign: "center",
-        }}
-      >
-        UniPay Vendor Mode
-      </Text>
+      </TouchableOpacity>
     </View>
   );
 }
