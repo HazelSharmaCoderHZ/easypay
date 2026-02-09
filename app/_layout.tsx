@@ -1,111 +1,81 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack } from 'expo-router';
-import { Drawer } from 'expo-router/drawer';
-import { useEffect, useState } from 'react';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+console.log("ROOT LAYOUT MOUNTED");
+import { auth } from "@/lib/firebase";
+import { getUserProfile } from "@/lib/getUserProfile";
+import { Stack } from "expo-router";
+import { onAuthStateChanged } from "firebase/auth";
+import { useEffect, useState } from "react";
 
-import { useTheme } from '@/constants/theme';
-
-export default function Layout() {
-  const { colors, fonts } = useTheme();
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+export default function RootLayout() {
+  const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<
+    "student" | "vendor" | "admin" | null
+  >(null);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const value = await AsyncStorage.getItem('isLoggedIn');
-      setIsLoggedIn(value === 'true');
-    };
+  const unsub = onAuthStateChanged(auth, async (user) => {
+    console.log("AUTH STATE CHANGED", user?.uid);
 
-    checkAuth();
-  }, []);
+    try {
+      if (!user) {
+        setRole(null);
+        setLoading(false);
+        return;
+      }
 
-  // While checking auth state → render nothing
-  if (isLoggedIn === null) {
-    return null;
-  }
+      const profile = await getUserProfile(user.uid);
 
-  // 🔒 NOT LOGGED IN → NO DRAWER, NO HEADER
-  if (!isLoggedIn) {
+      if (!profile) {
+        console.warn("No Firestore profile found");
+        setRole("student"); // or null
+        setLoading(false);
+        return;
+      }
+
+      if (!profile.active) {
+        console.log("PROFILE FETCHED:", profile);
+console.log("ROLE SET TO:", profile?.role);
+
+        setRole("student");
+        setLoading(false);
+        return;
+      }
+
+      setRole(profile.role);
+      setLoading(false);
+    } catch (err) {
+      console.error("Auth layout error:", err);
+      setRole(null);
+      setLoading(false);
+    }
+  });
+
+  return unsub;
+}, []);
+
+
+  if (loading) return null;
+
+
+
+
+  // 🔓 NOT LOGGED IN
+  if (!role) {
     return (
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}
-      />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="landing" />
+        <Stack.Screen name="auth" />
+        <Stack.Screen name="blocked" />
+      </Stack>
     );
   }
 
-  // 🔓 LOGGED IN → FULL DRAWER NAVIGATION
+  // 🔐 ROLE-BASED APP SHELL
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <Drawer
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: colors.card,
-          },
+    <Stack screenOptions={{ headerShown: false }}>
+  {role === "student" && <Stack.Screen name="student" />}
+  {role === "vendor" && <Stack.Screen name="vendor" />}
+  {role === "admin" && <Stack.Screen name="admin" />}
+</Stack>
 
-          headerTintColor: colors.primary,
-
-          headerTitleStyle: {
-            fontFamily: fonts.roundedBold,
-          },
-
-          drawerStyle: {
-            backgroundColor: colors.background,
-          },
-
-          drawerLabelStyle: {
-            color: colors.text,
-            fontFamily: fonts.rounded,
-            fontSize: 15,
-          },
-
-          drawerActiveBackgroundColor: colors.primary + '20',
-          drawerActiveTintColor: colors.primary,
-        }}
-      >
-        {/* 🏠 Home */}
-        <Drawer.Screen
-          name="index"
-          options={{ title: 'Home' }}
-        />
-
-        {/* 👤 Profile */}
-        <Drawer.Screen
-          name="profile"
-          options={{ title: 'My Profile' }}
-        />
-
-        {/* 📷 Scan */}
-        <Drawer.Screen
-          name="scan"
-          options={{ title: 'Scan & Pay' }}
-        />
-
-        {/* 📜 History */}
-        <Drawer.Screen
-          name="history"
-          options={{ title: 'Transactions' }}
-        />
-
-        {/* 💰 Balance */}
-        <Drawer.Screen
-          name="balance"
-          options={{ title: 'Balance' }}
-        />
-
-        {/* 🛠 Admin */}
-        <Drawer.Screen
-          name="admin"
-          options={{ title: 'Admin Panel' }}
-        />
-
-        {/* ℹ️ About */}
-        <Drawer.Screen
-          name="about"
-          options={{ title: 'About' }}
-        />
-      </Drawer>
-    </GestureHandlerRootView>
   );
 }
