@@ -6,63 +6,58 @@ export default function VendorHome() {
   const router = useRouter();
   const user = auth.currentUser;
 
+  const TODAY_REVENUE = 2350; // dummy
+
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: "#000",
-        justifyContent: "center",
-        padding: 24,
-      }}
-    >
-      {/* Emoji */}
+    <View style={{ flex: 1, backgroundColor: "#000", padding: 24 }}>
       <Text style={{ fontSize: 72, textAlign: "center", marginBottom: 12 }}>
         🧑‍🍳
       </Text>
 
-      {/* Greeting */}
-      <Text
-        style={{
-          color: "#0BE602",
-          fontSize: 22,
-          fontWeight: "700",
-          textAlign: "center",
-          marginBottom: 6,
-        }}
-      >
+      <Text style={{ color: "#0BE602", fontSize: 22, textAlign: "center" }}>
         Hello 👋
       </Text>
 
       <Text
         style={{
-          color: "#ffffff",
+          color: "#fff",
           opacity: 0.7,
-          fontSize: 14,
           textAlign: "center",
-          marginBottom: 32,
+          marginBottom: 24,
         }}
       >
         {user?.email}
       </Text>
 
-      {/* Scan Button */}
+      {/* Revenue Card */}
+      <View
+        style={{
+          backgroundColor: "#0f0f0f",
+          borderRadius: 20,
+          padding: 20,
+          marginBottom: 32,
+          borderWidth: 1,
+          borderColor: "#0BE602",
+        }}
+      >
+        <Text style={{ color: "#0BE602", fontSize: 14 }}>
+          Today’s Revenue
+        </Text>
+        <Text style={{ color: "#fff", fontSize: 28, fontWeight: "700" }}>
+          ₹{TODAY_REVENUE}
+        </Text>
+      </View>
+
       <TouchableOpacity
         onPress={() => router.push("/vendor/scan")}
         style={{
           backgroundColor: "#0BE602",
-          paddingVertical: 16,
+          padding: 16,
           borderRadius: 16,
         }}
       >
-        <Text
-          style={{
-            textAlign: "center",
-            fontWeight: "700",
-            color: "#000",
-            fontSize: 16,
-          }}
-        >
-          Scan & Enter Amount
+        <Text style={{ textAlign: "center", fontWeight: "700" }}>
+          Scan QR
         </Text>
       </TouchableOpacity>
     </View>
