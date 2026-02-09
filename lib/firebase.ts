@@ -1,6 +1,20 @@
-// This file exists ONLY for TypeScript path resolution.
-// Expo/Metro will automatically load firebase.web.ts or firebase.native.ts
-// at runtime depending on platform.
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
-export * from "./firebase.web";
+const firebaseConfig = {
+  apiKey: "AIzaSyDsQKcmU4vr_omN5WACeEUk1rULzQnJw2U",
+  authDomain: "unipay-3b36b.firebaseapp.com",
+  projectId: "unipay-3b36b",
+  storageBucket: "unipay-3b36b.firebasestorage.app",
+  messagingSenderId: "336395614622",
+  appId: "1:336395614622:web:53ea6957fabc5c2103fe8f"
+};
 
+const app = initializeApp(firebaseConfig);
+
+// ✅ THIS IS THE ONLY SAFE AUTH INIT FOR EXPO
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+
+export default app;

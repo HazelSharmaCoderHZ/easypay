@@ -1,18 +1,17 @@
 import { useTheme } from "@/constants/theme";
 import { auth } from "@/lib/firebase";
 import { useEffect, useState } from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 
 export default function StudentHome() {
   const { colors } = useTheme();
   const user = auth.currentUser;
 
-  const [amount, setAmount] = useState("");
   const [timestamp, setTimestamp] = useState(Date.now());
   const [showQR, setShowQR] = useState(false);
 
-  // Refresh QR timestamp every 30 seconds
+  // Refresh QR every 30 seconds
   useEffect(() => {
     if (!showQR) return;
 
@@ -25,140 +24,129 @@ export default function StudentHome() {
 
   if (!user) return null;
 
-  const parsedAmount = Number(amount);
-
-  const isAmountValid =
-    !isNaN(parsedAmount) && parsedAmount > 0;
-
   const qrPayload = JSON.stringify({
     uid: user.uid,
     email: user.email,
-    amount: parsedAmount,
     ts: timestamp,
-    type: "student-payment",
+    type: "student-entry",
   });
 
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: colors.background,
+        backgroundColor: "#000",
         justifyContent: "center",
         padding: 24,
       }}
     >
-      {/* Title */}
+      {/* Avatar / Emoji */}
       <Text
         style={{
-          color: colors.text,
-          fontSize: 24,
+          fontSize: 72,
+          textAlign: "center",
+          marginBottom: 12,
+        }}
+      >
+        🧑‍🎓
+      </Text>
+
+      {/* Greeting */}
+      <Text
+        style={{
+          color: "#0BE602",
+          fontSize: 22,
           fontWeight: "600",
-          marginBottom: 6,
           textAlign: "center",
+          marginBottom: 6,
         }}
       >
-        UniPay
+        Hello 👋
       </Text>
 
       <Text
         style={{
-          color: colors.text,
-          opacity: 0.6,
+          color: "#ffffff",
+          opacity: 0.7,
+          fontSize: 14,
           textAlign: "center",
-          marginBottom: 24,
+          marginBottom: 32,
         }}
       >
-        Enter amount and show QR to vendor
+        {user.email}
       </Text>
-
-      {/* Amount Input */}
-      <TextInput
-        value={amount}
-        onChangeText={(text) => {
-          setAmount(text);
-          setShowQR(false); // regenerate QR only on confirm
-        }}
-        keyboardType="numeric"
-        placeholder="Enter amount (₹)"
-        placeholderTextColor="#6B7280"
-        style={{
-          borderWidth: 1,
-          borderColor: colors.primary,
-          borderRadius: 14,
-          padding: 14,
-          color: colors.text,
-          fontSize: 16,
-          marginBottom: 16,
-        }}
-      />
 
       {/* Generate QR Button */}
-      <TouchableOpacity
-        disabled={!isAmountValid}
-        onPress={() => {
-          setTimestamp(Date.now());
-          setShowQR(true);
-        }}
-        style={{
-          backgroundColor: isAmountValid
-            ? colors.primary
-            : colors.primary + "40",
-          paddingVertical: 14,
-          borderRadius: 14,
-          marginBottom: 24,
-        }}
-      >
-        <Text
+      {!showQR && (
+        <TouchableOpacity
+          onPress={() => {
+            setTimestamp(Date.now());
+            setShowQR(true);
+          }}
           style={{
-            textAlign: "center",
-            fontWeight: "600",
-            color: "#000",
-            fontSize: 16,
+            backgroundColor: "#0BE602",
+            paddingVertical: 16,
+            borderRadius: 16,
           }}
         >
-          Generate QR
-        </Text>
-      </TouchableOpacity>
+          <Text
+            style={{
+              textAlign: "center",
+              fontWeight: "700",
+              color: "#000",
+              fontSize: 16,
+            }}
+          >
+            Generate QR
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {/* QR Section */}
       {showQR && (
         <View
           style={{
             alignItems: "center",
-            backgroundColor: colors.card,
+            backgroundColor: "#0f0f0f",
             padding: 24,
             borderRadius: 24,
             borderWidth: 2,
-            borderColor: colors.primary,
+            borderColor: "#0BE602",
           }}
         >
-          <QRCode
-            value={qrPayload}
-            size={220}
-            color={colors.primary}
-            backgroundColor="transparent"
-          />
+          
+            <QRCode
+              value={qrPayload}
+              size={220}
+              color="#0BE602"
+              backgroundColor="transparent"
+            />
+          
 
           <Text
             style={{
-              color: colors.text,
-              marginTop: 16,
-              fontSize: 16,
-              fontWeight: "500",
-            }}
-          >
-            Amount: ₹{parsedAmount}
-          </Text>
-
-          <Text
-            style={{
-              color: colors.primary,
-              marginTop: 6,
+              color: "#0BE602",
+              marginTop: 14,
               fontSize: 13,
             }}
           >
             QR refreshes every 30 seconds
           </Text>
+
+          <TouchableOpacity
+            onPress={() => setShowQR(false)}
+            style={{ marginTop: 16 }}
+          >
+            <Text
+              style={{
+                color: "#ffffff",
+                opacity: 0.7,
+                fontSize: 13,
+              }}
+            >
+              Generate again
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>

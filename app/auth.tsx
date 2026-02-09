@@ -1,88 +1,86 @@
-import { auth } from '@/lib/firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { useState } from 'react';
-import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { auth } from "@/lib/firebase";
+import { useRouter } from "expo-router";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { useState } from "react";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function Auth() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
-  try {
-    console.log("Attempting login...");
-    await signInWithEmailAndPassword(
-      auth,
-      email.trim(),
-      password.trim()
-    );
-    console.log("Login successful");
-  } catch (err: any) {
-    console.log("Login error:", err.code, err.message);
-    Alert.alert("Login failed", err.message);
-  }
-};
+    try {
+      console.log("Attempting login...");
+      const cred = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
+      console.log("Login successful:", cred.user.uid);
+
+      // 🔥 FORCE navigation (THIS WAS MISSING)
+      router.replace("/student"); // temporary hard route
+    } catch (err) {
+      console.error("Login failed:", err);
+    }
+  };
 
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: '#000',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
+        backgroundColor: "#000",
+        justifyContent: "center",
+        padding: 24,
       }}
     >
-      <Text style={{ color: '#0BE602', fontSize: 28, marginBottom: 30 }}>
+      <Text style={{ color: "#0BE602", fontSize: 26, textAlign: "center" }}>
         UniPay Login
       </Text>
 
       <TextInput
         placeholder="Email"
-        placeholderTextColor="#6B7280"
+        placeholderTextColor="#666"
         value={email}
         onChangeText={setEmail}
         style={{
           borderWidth: 1,
-          borderColor: '#333',
-          color: '#fff',
-          padding: 14,
+          borderColor: "#0BE602",
           borderRadius: 12,
-          marginBottom: 12,
+          padding: 14,
+          color: "#fff",
+          marginTop: 24,
         }}
       />
 
       <TextInput
         placeholder="Password"
-        placeholderTextColor="#6B7280"
+        placeholderTextColor="#666"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
         style={{
           borderWidth: 1,
-          borderColor: '#333',
-          color: '#fff',
-          padding: 14,
+          borderColor: "#0BE602",
           borderRadius: 12,
-          marginBottom: 20,
+          padding: 14,
+          color: "#fff",
+          marginTop: 16,
         }}
       />
-
-      {error !== '' && (
-        <Text style={{ color: 'red', marginBottom: 12 }}>
-          {error}
-        </Text>
-      )}
 
       <TouchableOpacity
         onPress={handleLogin}
         style={{
-          backgroundColor: '#0BE602',
+          backgroundColor: "#0BE602",
           padding: 16,
           borderRadius: 14,
+          marginTop: 24,
         }}
       >
-        <Text style={{ textAlign: 'center', fontWeight: '600' }}>
+        <Text style={{ textAlign: "center", fontWeight: "600" }}>
           Login
         </Text>
       </TouchableOpacity>
