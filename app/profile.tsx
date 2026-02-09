@@ -24,7 +24,7 @@ export default function Profile() {
 
   return (
     <LinearGradient
-      colors={['#0f172a', '#1e1b4b', '#312e81']}
+      colors={['#060a12', '#090917', '#0b0b0b']}
       style={styles.container}
     >
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 25,
     borderWidth: 1,
-    borderColor: '#312e81',
+    borderColor: '#14ca1a',
   },
 
   avatar: {
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     borderRadius: 45,
     marginBottom: 10,
     borderWidth: 2,
-    borderColor: '#6366f1',
+    borderColor: '#35ab1e',
   },
 
   name: {
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   },
 
   subtitle: {
-    color: '#a5b4fc',
+    color: '#2ed839',
     fontSize: 13,
     marginTop: 2,
   },
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     padding: 12,
     color: '#fff',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#1fbf2a',
     marginBottom: 12,
   },
 
@@ -283,12 +283,12 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#312e81',
+    borderColor: '#25d22e',
     alignItems: 'center',
   },
 
   roleActive: {
-    backgroundColor: '#6366f1',
+    backgroundColor: '#24d653',
   },
 
   roleText: {
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: 5,
     borderWidth: 1,
-    borderColor: '#312e81',
+    borderColor: '#29c529',
   },
 
   statValue: {
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   },
 
   statTitle: {
-    color: '#a5b4fc',
+    color: '#23c83c',
     fontSize: 12,
     marginTop: 4,
   },
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#2ad630',
   },
 
   settingText: {
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
   },
 
   arrow: {
-    color: '#6366f1',
+    color: '#39d534',
     fontSize: 18,
   },
 

@@ -7,7 +7,7 @@ export default function Layout() {
       <Drawer
         screenOptions={{
           headerStyle: { backgroundColor: '#020617' },
-          headerTintColor: '#38bdf8',
+          headerTintColor: '#28fa2c',
           drawerStyle: { backgroundColor: '#020617' },
           drawerLabelStyle: { color: 'white' },
         }}
