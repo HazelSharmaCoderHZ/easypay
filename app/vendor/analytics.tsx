@@ -1,17 +1,65 @@
+import { auth, db } from "@/lib/firebase";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 
-const dailyRevenue = [
-  { day: "Mon", amount: 1200 },
-  { day: "Tue", amount: 1800 },
-  { day: "Wed", amount: 900 },
-  { day: "Thu", amount: 2100 },
-  { day: "Fri", amount: 2600 },
-  { day: "Sat", amount: 3200 },
-  { day: "Sun", amount: 1500 },
-];
+const WEEK_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function VendorAnalytics() {
-  const maxAmount = Math.max(...dailyRevenue.map(d => d.amount));
+  const [weeklyRevenue, setWeeklyRevenue] = useState<number[]>(Array(7).fill(0));
+  const [dailyTotals, setDailyTotals] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const vendor = auth.currentUser;
+    if (!vendor) return;
+
+    const q = query(
+      collection(db, "transactions"),
+      where("vendorUid", "==", vendor.uid)
+    );
+
+    const unsub = onSnapshot(q, (snapshot) => {
+      const weekly = Array(7).fill(0);
+      const daily: Record<string, number> = {};
+
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        if (!data.createdAt) return;
+
+        const date = data.createdAt.toDate();
+        const dayIndex = date.getDay();
+        const dateKey = date.toDateString(); // e.g. "Mon Feb 26 2026"
+
+        weekly[dayIndex] += data.amount;
+        daily[dateKey] = (daily[dateKey] || 0) + data.amount;
+      });
+
+      setWeeklyRevenue(weekly);
+      setDailyTotals(daily);
+    });
+
+    return unsub;
+  }, []);
+
+  const maxAmount = Math.max(...weeklyRevenue, 1);
+
+  // Highest & lowest earning day (this month)
+  const today = new Date();
+  const monthEntries = Object.entries(dailyTotals).filter(([dateStr]) => {
+    const d = new Date(dateStr);
+    return (
+      d.getMonth() === today.getMonth() &&
+      d.getFullYear() === today.getFullYear()
+    );
+  });
+
+  let highest = { amount: 0, date: "" };
+  let lowest = { amount: Infinity, date: "" };
+
+  monthEntries.forEach(([date, amount]) => {
+    if (amount > highest.amount) highest = { amount, date };
+    if (amount < lowest.amount) lowest = { amount, date };
+  });
 
   return (
     <ScrollView
@@ -25,7 +73,7 @@ export default function VendorAnalytics() {
           fontSize: 26,
           fontWeight: "700",
           marginBottom: 6,
-          textAlign: "center"
+          textAlign: "center",
         }}
       >
         Analytics
@@ -36,10 +84,10 @@ export default function VendorAnalytics() {
           color: "#ffffff",
           opacity: 0.6,
           marginBottom: 28,
-          textAlign: "center"
+          textAlign: "center",
         }}
       >
-        Revenue insights (demo data)
+        Revenue insights
       </Text>
 
       {/* Weekly Revenue Bars */}
@@ -63,11 +111,11 @@ export default function VendorAnalytics() {
           marginBottom: 32,
         }}
       >
-        {dailyRevenue.map((item) => {
-          const height = (item.amount / maxAmount) * 160;
+        {weeklyRevenue.map((amount, index) => {
+          const height = (amount / maxAmount) * 160;
 
           return (
-            <View key={item.day} style={{ alignItems: "center" }}>
+            <View key={index} style={{ alignItems: "center" }}>
               <View
                 style={{
                   width: 24,
@@ -78,7 +126,7 @@ export default function VendorAnalytics() {
                 }}
               />
               <Text style={{ color: "#ffffff", fontSize: 12 }}>
-                {item.day}
+                {WEEK_DAYS[index]}
               </Text>
             </View>
           );
@@ -105,7 +153,7 @@ export default function VendorAnalytics() {
         >
           <Text style={{ color: "#0BE602", fontSize: 14 }}>
             Highest earning day this month
-                      </Text>
+          </Text>
           <Text
             style={{
               color: "#ffffff",
@@ -113,10 +161,10 @@ export default function VendorAnalytics() {
               fontWeight: "700",
             }}
           >
-            ₹3200
+            ₹{highest.amount || 0}
           </Text>
           <Text style={{ color: "#ffffff", opacity: 0.5, fontSize: 12 }}>
-            22.02.2026
+            {highest.date || "—"}
           </Text>
         </View>
 
@@ -140,10 +188,10 @@ export default function VendorAnalytics() {
               fontWeight: "700",
             }}
           >
-            ₹900
+            ₹{lowest.amount === Infinity ? 0 : lowest.amount}
           </Text>
           <Text style={{ color: "#ffffff", opacity: 0.5, fontSize: 12 }}>
-            14.02.2026
+            {lowest.date || "—"}
           </Text>
         </View>
       </View>
@@ -158,7 +206,7 @@ export default function VendorAnalytics() {
           marginTop: 24,
         }}
       >
-        Demo analytics shown using mock data
+        Analytics based on real transactions
       </Text>
     </ScrollView>
   );

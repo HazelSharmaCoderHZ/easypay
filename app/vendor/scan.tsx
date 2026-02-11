@@ -1,4 +1,6 @@
+import { auth, db } from "@/lib/firebase";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -10,6 +12,7 @@ import {
 
 type ScannedStudent = {
   email: string;
+  uid: string;
   ts: number;
 };
 
@@ -20,24 +23,13 @@ export default function VendorScan() {
   const [student, setStudent] = useState<ScannedStudent | null>(null);
 
   useEffect(() => {
-    if (!permission) {
-      requestPermission();
-    }
+    if (!permission) requestPermission();
   }, []);
 
   if (!permission?.granted) {
     return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: "#000",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Text style={{ color: "#fff" }}>
-          Camera permission required
-        </Text>
+      <View style={{ flex: 1, backgroundColor: "#000", justifyContent: "center", alignItems: "center" }}>
+        <Text style={{ color: "#fff" }}>Camera permission required</Text>
       </View>
     );
   }
@@ -47,38 +39,38 @@ export default function VendorScan() {
 
     try {
       const parsed = JSON.parse(data);
-
-      setStudent({
-        email: parsed.email,
-        ts: parsed.ts,
-      });
+      setStudent(parsed);
       setScanned(true);
     } catch {
-      // invalid QR → ignore
+      // ignore invalid QR
     }
   };
 
-  const handleConfirm = () => {
-    Alert.alert(
-      "Transaction Successful ✅",
-      `₹${amount} recorded successfully`,
-      [
-        {
-          text: "OK",
-          onPress: () => {
-            // reset state for next scan
-            setScanned(false);
-            setStudent(null);
-            setAmount("");
-          },
-        },
-      ]
-    );
+  const handleConfirm = async () => {
+    try {
+      const vendor = auth.currentUser;
+      if (!vendor || !student) return;
+
+      await addDoc(collection(db, "transactions"), {
+        studentUid: student.uid,
+        studentEmail: student.email,
+        vendorUid: vendor.uid,
+        amount: Number(amount),
+        createdAt: serverTimestamp(),
+      });
+
+      Alert.alert("Transaction Successful ✅", `₹${amount} recorded`);
+
+      setScanned(false);
+      setStudent(null);
+      setAmount("");
+    } catch (err) {
+      Alert.alert("Error", "Failed to record transaction");
+    }
   };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#000" }}>
-      {/* CAMERA (disabled after scan) */}
       {!scanned && (
         <CameraView
           style={{ flex: 1 }}
@@ -87,91 +79,35 @@ export default function VendorScan() {
         />
       )}
 
-      {/* CONFIRMATION VIEW */}
       {scanned && student && (
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            padding: 24,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 64,
-              textAlign: "center",
-              marginBottom: 12,
-            }}
-          >
-            ✅
-          </Text>
+        <View style={{ flex: 1, justifyContent: "center", padding: 24 }}>
+          <Text style={{ fontSize: 64, textAlign: "center" }}>✅</Text>
 
-          <Text
-            style={{
-              color: "#0BE602",
-              fontSize: 22,
-              fontWeight: "700",
-              textAlign: "center",
-              marginBottom: 24,
-            }}
-          >
+          <Text style={{ color: "#0BE602", fontSize: 22, fontWeight: "700", textAlign: "center" }}>
             Confirm Transaction
           </Text>
 
-          <View
-            style={{
-              backgroundColor: "#0f0f0f",
-              borderRadius: 18,
-              padding: 20,
-              marginBottom: 24,
-            }}
-          >
-            <Text style={{ color: "#fff", marginBottom: 6 }}>
-              Student: {student.email}
-            </Text>
-
-            <Text style={{ color: "#fff", marginBottom: 6 }}>
-              Amount: ₹{amount}
-            </Text>
-
+          <View style={{ backgroundColor: "#0f0f0f", borderRadius: 18, padding: 20, marginVertical: 24 }}>
+            <Text style={{ color: "#fff" }}>Student: {student.email}</Text>
+            <Text style={{ color: "#fff" }}>Amount: ₹{amount}</Text>
             <Text style={{ color: "#fff", opacity: 0.6 }}>
-              Time:{" "}
-              {new Date(student.ts).toLocaleString()}
+              Time: {new Date(student.ts).toLocaleString()}
             </Text>
           </View>
 
           <TouchableOpacity
             onPress={handleConfirm}
-            style={{
-              backgroundColor: "#0BE602",
-              padding: 16,
-              borderRadius: 16,
-            }}
+            style={{ backgroundColor: "#0BE602", padding: 16, borderRadius: 16 }}
           >
-            <Text
-              style={{
-                textAlign: "center",
-                fontWeight: "700",
-                color: "#000",
-                fontSize: 16,
-              }}
-            >
+            <Text style={{ textAlign: "center", fontWeight: "700", color: "#000" }}>
               Confirm
             </Text>
           </TouchableOpacity>
         </View>
       )}
 
-      {/* BOTTOM INPUT (only before scan) */}
       {!scanned && (
-        <View
-          style={{
-            padding: 20,
-            backgroundColor: "#000",
-            borderTopWidth: 1,
-            borderColor: "#0BE602",
-          }}
-        >
+        <View style={{ padding: 20, borderTopWidth: 1, borderColor: "#0BE602" }}>
           <TextInput
             placeholder="Enter amount ₹"
             placeholderTextColor="#666"
@@ -187,14 +123,7 @@ export default function VendorScan() {
               marginBottom: 12,
             }}
           />
-
-          <Text
-            style={{
-              color: "#fff",
-              opacity: 0.6,
-              textAlign: "center",
-            }}
-          >
+          <Text style={{ color: "#fff", opacity: 0.6, textAlign: "center" }}>
             Enter amount, then scan student QR
           </Text>
         </View>

@@ -1,44 +1,43 @@
+import { auth, db } from "@/lib/firebase";
+import {
+    collection,
+    onSnapshot,
+    orderBy,
+    query,
+    where,
+} from "firebase/firestore";
+import { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 
-const mockTransactions = [
-  {
-    id: "1",
-    title: "Cafeteria Lunch",
-    date: "12 Sep 2026",
-    time: "01:24 PM",
-    amount: 120,
-  },
-  {
-    id: "2",
-    title: "Coffee Stall",
-    date: "12 Sep 2026",
-    time: "05:10 PM",
-    amount: 60,
-  },
-  {
-    id: "3",
-    title: "Evening Snacks",
-    date: "11 Sep 2026",
-    time: "06:45 PM",
-    amount: 90,
-  },
-  {
-    id: "4",
-    title: "Juice Corner",
-    date: "10 Sep 2026",
-    time: "04:12 PM",
-    amount: 40,
-  },
-  {
-    id: "5",
-    title: "Breakfast Canteen",
-    date: "09 Sep 2026",
-    time: "08:30 AM",
-    amount: 70,
-  },
-];
+export default function History() {
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
 
-export default function Statement() {
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const q = query(
+      collection(db, "transactions"),
+      where("studentUid", "==", user.uid),
+      orderBy("createdAt", "desc")
+    );
+
+    const unsub = onSnapshot(q, (snapshot) => {
+      const txs = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setTransactions(txs);
+
+      const sum = txs.reduce((acc, tx) => acc + (tx.amount || 0), 0);
+      setTotal(sum);
+    });
+
+    return unsub;
+  }, []);
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: "#000" }}
@@ -50,89 +49,128 @@ export default function Statement() {
           color: "#0BE602",
           fontSize: 26,
           fontWeight: "700",
-          marginBottom: 6,
+          marginBottom: 4,
         }}
       >
-        Statement
+        Transaction History
       </Text>
 
       <Text
         style={{
           color: "#ffffff",
           opacity: 0.6,
-          marginBottom: 24,
+          marginBottom: 20,
         }}
       >
-        Your spending history
+        All your campus payments
       </Text>
 
-      {/* Transactions */}
-      {mockTransactions.map((tx) => (
-        <View
-          key={tx.id}
+      {/* Total Summary */}
+      <View
+        style={{
+          backgroundColor: "#0f0f0f",
+          borderRadius: 18,
+          padding: 18,
+          marginBottom: 24,
+          borderWidth: 1,
+          borderColor: "#0BE602",
+        }}
+      >
+        <Text style={{ color: "#ffffff", opacity: 0.6 }}>
+          Total spent
+        </Text>
+        <Text
           style={{
-            backgroundColor: "#0f0f0f",
-            borderRadius: 18,
-            padding: 16,
-            marginBottom: 14,
-            borderLeftWidth: 4,
-            borderLeftColor: "#0BE602",
+            color: "#0BE602",
+            fontSize: 24,
+            fontWeight: "700",
+            marginTop: 4,
           }}
         >
-          {/* Top Row */}
+          ₹{total}
+        </Text>
+      </View>
+
+      {/* Transactions */}
+      {transactions.map((tx) => {
+        const date = tx.createdAt?.toDate();
+
+        return (
           <View
+            key={tx.id}
             style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginBottom: 6,
+              backgroundColor: "#0f0f0f",
+              borderRadius: 16,
+              padding: 16,
+              marginBottom: 14,
             }}
           >
+            {/* Row */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginBottom: 6,
+              }}
+            >
+              <Text
+                style={{
+                  color: "#ffffff",
+                  fontSize: 15,
+                  fontWeight: "600",
+                }}
+              >
+                Campus Purchase
+              </Text>
+
+              <Text
+                style={{
+                  color: "#0BE602",
+                  fontSize: 16,
+                  fontWeight: "700",
+                }}
+              >
+                −₹{tx.amount}
+              </Text>
+            </View>
+
+            {/* Date */}
             <Text
               style={{
                 color: "#ffffff",
-                fontSize: 16,
-                fontWeight: "600",
+                opacity: 0.45,
+                fontSize: 12,
               }}
             >
-              {tx.title}
-            </Text>
-
-            <Text
-              style={{
-                color: "#0BE602",
-                fontSize: 16,
-                fontWeight: "700",
-              }}
-            >
-              −₹{tx.amount}
+              {date
+                ? date.toLocaleDateString("en-IN", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : ""}
             </Text>
           </View>
+        );
+      })}
 
-          {/* Meta */}
+      {/* Empty State */}
+      {transactions.length === 0 && (
+        <View style={{ marginTop: 60 }}>
           <Text
             style={{
               color: "#ffffff",
-              opacity: 0.5,
-              fontSize: 12,
+              opacity: 0.4,
+              textAlign: "center",
+              fontSize: 14,
             }}
           >
-            {tx.date} • {tx.time}
+            No transactions yet
           </Text>
         </View>
-      ))}
-
-      {/* Footer */}
-      <Text
-        style={{
-          color: "#ffffff",
-          opacity: 0.4,
-          fontSize: 12,
-          textAlign: "center",
-          marginTop: 20,
-        }}
-      >
-        This is a demo statement with sample data
-      </Text>
+      )}
     </ScrollView>
   );
 }
